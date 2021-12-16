@@ -1,27 +1,41 @@
 const express = require("express");
 const https = require("https");
 
+const bodyParser = require("body-parser");
 const app = express();
 
-
+app.use(bodyParser.urlencoded({extend:true}))
 
 app.get("/" , function(req,res){
-  const url = "https://api.openweathermap.org/data/2.5/weather?q=Hangzhou&appid=2dff358d9727cd778a014f944690834e"
+  res.sendFile(__dirname + "/index.html")
+
+})
+
+
+app.post("/",function(req,res){
+  const query = req.body.cityName
+  const apiKey = "2dff358d9727cd778a014f944690834e"
+
+  const url = "https://api.openweathermap.org/data/2.5/weather?q="+query +"&appid="+apiKey
   https.get(url,function(response){
-    console.log(response.statusCode);
+    console.log(response.statusCode)
 
     response.on("data",function(data){
       const weatherData = JSON.parse(data)
       const temp = weatherData.main.temp
       const weatherDescription = weatherData.weather[0].description
-      res.send("+he temp in hangzhou" + temp + "Celcius")
-      // return
+      const icon = weatherData.weather[0].icon
+      const imageURL = "http://openweathermap.org/img/wn/"+icon+"@2x.png"
+      res.write("<p>whether current  is "+ weatherDescription +"</p>")
+      res.write("<img src=" + imageURL + ">")
+      res.write("<h1>the temp in "+query +" is " + temp + " Celcius</h1>")
+      res.send()
     })
-
   })
-
-  // res.send("Server is running")
 })
+
+
+
 
 app.listen(3000 , function(){
   console.log("Sever is running on port 3000")
